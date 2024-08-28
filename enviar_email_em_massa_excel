@@ -1,0 +1,132 @@
+"""
+Este código tem como objetivo enviar o mesmo e-mail para destinatários cujos endereços estão listados em uma base de dados no Excel.
+A automação foi desenvolvida utilizando o navegador Microsoft Edge e o serviço de e-mail Outlook.
+"""
+
+
+import pandas as pd
+import time
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.edge.options import Options
+from selenium.common.exceptions import WebDriverException, TimeoutException, NoSuchElementException
+
+def iniciar_driver():
+    options = Options()
+    options.use_chromium = True
+    options.add_argument('--ignore-certificate-errors')
+    return webdriver.Edge(options=options)
+
+def acessar_outlook(driver):
+    try:
+        driver.get('https://outlook.office.com/mail/')
+        print("Acesso ao Outlook realizado com sucesso.")
+    except WebDriverException as e:
+        print(f"Erro ao acessar o Outlook: {e}")
+
+def novo_email(driver):
+    try:
+        xpath_novo_email = (
+            "/html/body/div[1]/div/div[2]/div/div[2]/div[1]/div/div/"
+            "div[2]/div[1]/div/div/div/div/div/div/div/div/div/div/div[1]/"
+            "div/div/div/div[1]/div/div/span/button[1]"
+        )
+        novo_email_btn = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, xpath_novo_email))
+        )
+        novo_email_btn.click()
+        print("Novo e-mail iniciado com sucesso.")
+        return True
+    except (TimeoutException, NoSuchElementException, WebDriverException):
+        pagina_inicial(driver)
+        return False
+
+def pagina_inicial(driver):
+    try:
+        print("Botão 'Novo E-mail' não encontrado. Tentando método alternativo.")
+        xpath_email_input = (
+            "/html/body/div[1]/div/div[2]/div/div[2]/div[1]/div/div/"
+            "div[1]/div[2]/div/div/div/div/span/div[1]/div/div/div[1]/"
+            "div/button/span/span/span"
+        )
+        email_input = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath_email_input))
+        )
+        email_input.click()
+        email_input.send_keys(Keys.CONTROL + "a")
+        email_input.send_keys(Keys.DELETE)
+    except WebDriverException as e:
+        print(f"Erro ao tentar limpar e reenviar o e-mail: {e}")
+
+def carregar_dados(file_path):
+    return pd.read_excel(file_path, engine='openpyxl')
+
+def enviar_email(driver, to_email, body):
+    try:
+        xpath_email_input = (
+            "/html/body/div[1]/div/div[2]/div/div[2]/div[2]/div/div/div/div[3]/"
+            "div/div/div[3]/div[1]/div/div/div[2]/div/div[3]/div[1]/div/"
+            "div[4]/div/div/div[1]"
+        )
+        email_input = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath_email_input))
+        )
+        email_input.click()
+        driver.switch_to.active_element.send_keys(to_email)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(Keys.ENTER)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(Keys.TAB, Keys.TAB)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(Keys.CONTROL + "a", Keys.DELETE)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys("Pesquisa Talentos de Fibra")
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(Keys.TAB)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(Keys.CONTROL + "a", Keys.DELETE)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(body)
+        time.sleep(1)
+        driver.switch_to.active_element.send_keys(Keys.CONTROL + Keys.ENTER)
+        time.sleep(1)
+    except WebDriverException as e:
+        print(f"Erro ao enviar e-mail: {e}")
+
+def main():
+    file_path = './Arquivo.xlsx'
+    body = """\
+    Bom dia, espero que esteja bem!
+    
+    Nós somos um grupo de estagiários e estamos realizando uma pesquisa para o Talentos de Fibra sobre a viabilidade da implantação de um plano universitário de telecomunicações.
+    O objetivo desta pesquisa é coletar informações que irão nos ajudar a avaliar a necessidade, os interesses e a aceitação de um plano que ofereça serviços de internet a preços acessíveis para a comunidade universitária.
+    Sua participação é essencial para entendermos melhor as demandas dos estudantes e pais de estudantes e, assim, desenvolvermos uma solução que atenda às suas necessidades.
+    
+    As respostas são confidenciais e serão utilizadas apenas para fins desta pesquisa. Levará em média 5 minutinhos!
+    Segue o link da pesquisa:
+    'Link'
+    
+    Agradecemos por sua colaboração!
+    Atenciosamente,
+    Gessyca Carneiro Bernardes
+    """
+
+    df_dados = carregar_dados(file_path)
+    driver = iniciar_driver()
+    acessar_outlook(driver)
+    
+    start_time = time.time()
+
+    for _, row in df_dados.iterrows():
+        if novo_email(driver):
+            enviar_email(driver, row['EMAIL'], body)
+    
+    end_time = time.time()
+    duration_minutes = (end_time - start_time) / 60
+    print(f"O loop levou {duration_minutes:.2f} minutos para ser executado.")
+
+if __name__ == "__main__":
+    main()
