@@ -22,7 +22,7 @@ Este repositório contém diversos projetos de RPA (Automação de Processos Rob
 
 ### Automação de Cadastro de Servidores ###
 **Descrição:**
-Este script automatiza o processo de atualização e cadastro de servidores em um sistema através do navegador Microsoft Edge. Ele utiliza o Selenium WebDriver para realizar a automação, onde acessa um painel de administração, atualiza informações de servidores listados em uma planilha Excel e marca checkboxes para realizar os cadastros de novos servidores.
+- Este script automatiza o processo de atualização e cadastro de servidores em um sistema através do navegador Microsoft Edge. Ele utiliza o Selenium WebDriver para realizar a automação, onde acessa um painel de administração, atualiza informações de servidores listados em uma planilha Excel e marca checkboxes para realizar os cadastros de novos servidores.
 
 **Funcionalidades:**
 - Leitura de cadastros (endereços de servidores) a partir de um arquivo Excel.
@@ -32,11 +32,11 @@ Este script automatiza o processo de atualização e cadastro de servidores em u
 
 **Como usar:**
 1. **Pré-requisitos**:
-   - Instalar o Microsoft Edge e o Edge WebDriver.
-   - Instalar as bibliotecas Python necessárias: `pandas`, `selenium`, e `openpyxl`.
+- Instalar o Microsoft Edge e o Edge WebDriver.
+- Instalar as bibliotecas Python necessárias: `pandas`, `selenium`, e `openpyxl`.
    
-   ```bash
-   pip install pandas selenium openpyxl
+    ```bash
+    pip install pandas selenium openpyxl
 
 **Arquivo:**
 - automacao_cadastro_servidores.py
